@@ -1,9 +1,9 @@
-/********************************** (C) COPYRIGHT *******************************
+ï»¿/********************************** (C) COPYRIGHT *******************************
  * File Name          : battservice.c
  * Author             : WCH
  * Version            : V1.0
  * Date               : 2018/12/10
- * Description        : µç³Ø·þÎñ
+ * Description        : ï¿½ï¿½Ø·ï¿½ï¿½ï¿½
  *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
  * Attention: This software (modified or not) and binary are used for 
@@ -13,7 +13,7 @@
 /*********************************************************************
  * INCLUDES
  */
-#include "CONFIG.h"
+#include "config.h"
 #include "hiddev.h"
 #include "battservice.h"
 

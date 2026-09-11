@@ -1,9 +1,9 @@
-/********************************** (C) COPYRIGHT *******************************
+ï»¿/********************************** (C) COPYRIGHT *******************************
  * File Name          : scanparamservice.c
  * Author             : WCH
  * Version            : V1.0
  * Date               : 2018/12/10
- * Description        : É¨Ãè²ÎÊý·þÎñ
+ * Description        : É¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  *********************************************************************************
  * Copyright (c) 2021 Nanjing Qinheng Microelectronics Co., Ltd.
  * Attention: This software (modified or not) and binary are used for 
@@ -13,7 +13,7 @@
 /*********************************************************************
  * INCLUDES
  */
-#include "CONFIG.h"
+#include "config.h"
 #include "scanparamservice.h"
 
 /*********************************************************************

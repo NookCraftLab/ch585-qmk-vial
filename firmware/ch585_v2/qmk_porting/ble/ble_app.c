@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ble_app.c — BLE 蓝牙应用层核心实现
  *
  * 基于沁恒官方 HID_Keyboard 示例移植，适配 QMK 主循环。
@@ -8,7 +8,7 @@
 #include "ble_app.h"
 #include "ble_config.h"
 #include "led_indicator.h"
-#include "CONFIG.h"
+#include "config.h"
 #include "HAL.h"
 #include "hiddev.h"
 #include "hidkbdservice.h"
