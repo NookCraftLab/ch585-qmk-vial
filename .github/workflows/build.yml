@@ -1,0 +1,69 @@
+name: Build Firmware
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ created ]
+
+env:
+  DOCKER_IMAGE: nookcraftlab/riscv:latest
+  FIRMWARE_PATH: firmware/ch585_v2
+  FIRMWARE_NAME: ch585_evb
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Get version info
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=ci-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          fi
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Build firmware with Docker
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            ${{ env.DOCKER_IMAGE }} \
+            bash /workspace/${{ env.FIRMWARE_PATH }}/build.sh
+
+      - name: Verify build output
+        run: |
+          if [ ! -f "${{ env.FIRMWARE_PATH }}/build/${{ env.FIRMWARE_NAME }}.hex" ]; then
+            echo "Error: Firmware file not found!"
+            exit 1
+          fi
+          ls -lh "${{ env.FIRMWARE_PATH }}/build/"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FIRMWARE_NAME }}-${{ steps.version.outputs.version }}
+          path: |
+            ${{ env.FIRMWARE_PATH }}/build/${{ env.FIRMWARE_NAME }}.hex
+            ${{ env.FIRMWARE_PATH }}/build/${{ env.FIRMWARE_NAME }}.bin
+            ${{ env.FIRMWARE_PATH }}/build/${{ env.FIRMWARE_NAME }}.elf
+          retention-days: 30
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ env.FIRMWARE_PATH }}/build/${{ env.FIRMWARE_NAME }}.hex
+            ${{ env.FIRMWARE_PATH }}/build/${{ env.FIRMWARE_NAME }}.bin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

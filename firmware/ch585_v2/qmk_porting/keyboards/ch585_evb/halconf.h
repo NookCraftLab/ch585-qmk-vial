@@ -1,0 +1,24 @@
+/*
+ * CH585 EVB 引脚复用配置（M2 有线：不用 UART/I2C/SPI 重映射）
+ */
+
+#pragma once
+
+// RB_PIN_UART0  -  UART0: PB4/PB7 ->  PA15/PA14
+// #define UART0_IO_REMAPPING
+
+// RB_PIN_UART1  -  UART1: PA8/PA9 ->  PB12/PB13
+// #define UART1_IO_REMAPPING
+
+// RB_PIN_UART2  -  UART2: PA6/PA7 ->  PB22/PB23
+// #define UART2_IO_REMAPPING
+
+// RB_PIN_UART3  -  UART3: PA4/PA5 ->  PB20/PB21
+// 注意：PA4 在本板用作矩阵列，勿开 UART3 重映射冲突
+// #define UART3_IO_REMAPPING
+
+/* I2C_IO_REMAPPING    -  I2C: PB13/PB12 -> PB21/PB20 */
+// #define I2C_IO_REMAPPING
+
+/* SPI_IO_REMAPPING   -  SPI0:  PA12/PA13/PA14/PA15 -> PB12/PB13/PB14/PB15 */
+// #define SPI_IO_REMAPPING

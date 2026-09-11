@@ -1,0 +1,4 @@
+[submodule "firmware/ch585_v2/qmk_firmware"]
+	path = firmware/ch585_v2/qmk_firmware
+	url = https://github.com/NookCraftLab/qmk_firmware.git
+	branch = master
