@@ -49,9 +49,11 @@ file(GLOB_RECURSE ch582_sdk_temp
 
     # "${CMAKE_CURRENT_LIST_DIR}/USB_LIB/*.c"
 )
-# list(REMOVE_ITEM ch582_sdk_temp
-#     "${CMAKE_CURRENT_LIST_DIR}/StdPeriphDriver/CH58x_usbdev.c"
-# )
+# 移除USB主机模式驱动（我们只用USB设备模式，且CHRV3UFI.H大小写不匹配会导致Linux编译失败）
+list(REMOVE_ITEM ch582_sdk_temp
+    "${CMAKE_CURRENT_LIST_DIR}/StdPeriphDriver/CH58x_usbhostBase.c"
+    "${CMAKE_CURRENT_LIST_DIR}/StdPeriphDriver/CH58x_usbhostClass.c"
+)
 
 if(BUILD_WIRELESS_LIB OR(NOT BLE_ENABLE AND NOT ESB_ENABLE))
     list(APPEND ch582_sdk_temp
