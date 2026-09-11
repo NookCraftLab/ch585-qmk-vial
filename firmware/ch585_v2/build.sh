@@ -3,6 +3,9 @@
 
 set -e
 
+# Git safe.directory（Docker容器里所有者不一致，需要加例外）
+git config --global --add safe.directory '*'
+
 # 工具链路径（分包镜像里已经预装，注意路径里有空格）
 GCC_PATH="/opt/Toolchain/RISC-V Embedded GCC12/bin"
 
