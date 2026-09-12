@@ -8,7 +8,7 @@
 #include "ble_app.h"
 #include "ble_config.h"
 #include "led_indicator.h"
-#include "CONFIG.h"
+#include "config.h"
 #include "HAL.h"
 #include "hiddev.h"
 #include "hidkbdservice.h"
