@@ -51,6 +51,9 @@ void ble_send_keyboard_report(uint8_t modifiers, uint8_t *keys);
 /* 发送空键盘报告（释放所有键）*/
 void ble_send_keyboard_release(void);
 
+/* 重试待发送的HID报告（主循环里调用）*/
+void ble_retry_pending_report(void);
+
 /* 获取当前 BLE 连接状态 */
 ble_state_t ble_get_state(void);
 

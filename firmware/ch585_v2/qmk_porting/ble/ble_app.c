@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ble_app.c — BLE 蓝牙应用层核心实现
  *
  * 基于沁恒官方 HID_Keyboard 示例移植，适配 QMK 主循环。
@@ -8,7 +8,7 @@
 #include "ble_app.h"
 #include "ble_config.h"
 #include "led_indicator.h"
-#include "config.h"
+#include "CONFIG.h"
 #include "HAL.h"
 #include "hiddev.h"
 #include "hidkbdservice.h"
@@ -79,8 +79,9 @@ static uint8_t pending_pair_device = 0;
  * 大连接间隔(500/1000ms)下，矩阵扫描重复生成相同报告，
  * HidDev_Report 内部缓存排队，导致连击（按1次输出10多个字符）。
  */
-static uint8_t last_sent_report[HID_KEYBOARD_IN_RPT_LEN] = {0};
-static bool last_sent_report_valid = false;
+/* 待重试的报告（发送失败时保存，主循环里重试）*/
+static uint8_t pending_report[HID_KEYBOARD_IN_RPT_LEN] = {0};
+static bool pending_report_valid = false;
 
 /* 前向声明 */
 static void bond_table_load(void);
@@ -419,8 +420,8 @@ static void ble_state_cb(gapRole_States_t newState, gapRoleEvent_t *pEvent)
                 conn_handle = event->connectionHandle;
                 current_state = BLE_STATE_CONNECTED;
 
-                /* 重置 HID 报告去重状态：重新连接后第一次报告必须发送 */
-                last_sent_report_valid = false;
+                /* 重置待重试队列：重新连接后清空旧报告 */
+                pending_report_valid = false;
 
                 if (!wired_mode_active) {
                     led_set_conn_state(LED_CONN_SUCCESS);  /* 常亮2秒表示连接成功，然后自动熄灭 */
@@ -637,30 +638,16 @@ static uint8_t ble_hid_report_cb(uint8_t id, uint8_t type, uint16_t uuid,
  * HID 报告发送（非阻塞重试）
  * ======================================================================== */
 
-/* 尝试发送报告 */
+/* 尝试发送报告，失败时保存到待重试队列 */
 static bool ble_send_report_internal(uint8_t *report)
 {
     if (current_state != BLE_STATE_CONNECTED) {
         return false;
     }
 
-    /* 去重：和上一次成功发送的报告完全相同则跳过
-     * 避免大连接间隔下 HidDev_Report 缓存排队导致连击
-     */
-    if (last_sent_report_valid &&
-        memcmp(report, last_sent_report, HID_KEYBOARD_IN_RPT_LEN) == 0) {
-        return true;  /* 假装发送成功，实际跳过 */
-    }
-
     uint8_t status = HidDev_Report(HID_RPT_ID_KEY_IN, HID_REPORT_TYPE_INPUT,
                                     HID_KEYBOARD_IN_RPT_LEN, report);
-    if (status == SUCCESS) {
-        /* 发送成功，更新上一次报告 */
-        memcpy(last_sent_report, report, HID_KEYBOARD_IN_RPT_LEN);
-        last_sent_report_valid = true;
-        return true;
-    }
-    return false;
+    return (status == SUCCESS);
 }
 
 void ble_send_keyboard_report(uint8_t modifiers, uint8_t *keys)
@@ -673,17 +660,33 @@ void ble_send_keyboard_report(uint8_t modifiers, uint8_t *keys)
         }
     }
 
-    /* 发送失败直接放弃，不保存到待重试队列
-     * QMK 矩阵扫描持续运行(10ms一次)，下次扫描会重新发送最新报告
-     * 避免待重试队列重复调用 HidDev_Report 导致缓存排队连击
-     */
-    ble_send_report_internal(report);
+    if (!ble_send_report_internal(report)) {
+        /* 发送失败，保存到待重试队列（覆盖旧的，因为新报告状态最新）*/
+        memcpy(pending_report, report, HID_KEYBOARD_IN_RPT_LEN);
+        pending_report_valid = true;
+    } else {
+        pending_report_valid = false;
+    }
 }
 
 void ble_send_keyboard_release(void)
 {
     uint8_t report[HID_KEYBOARD_IN_RPT_LEN] = {0};
-    ble_send_report_internal(report);
+    if (!ble_send_report_internal(report)) {
+        memcpy(pending_report, report, HID_KEYBOARD_IN_RPT_LEN);
+        pending_report_valid = true;
+    } else {
+        pending_report_valid = false;
+    }
+}
+
+/* 主循环里调用：重试待发送的报告 */
+void ble_retry_pending_report(void)
+{
+    if (!pending_report_valid) return;
+    if (ble_send_report_internal(pending_report)) {
+        pending_report_valid = false;
+    }
 }
 
 /* ========================================================================

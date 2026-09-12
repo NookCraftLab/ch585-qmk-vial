@@ -298,4 +298,7 @@ void housekeeping_task_user(void) {
 
     /* 处理LED闪烁3下状态机 */
     mobile_process_flash();
+
+    /* 重试待发送的HID报告（非阻塞重试）*/
+    ble_retry_pending_report();
 }
